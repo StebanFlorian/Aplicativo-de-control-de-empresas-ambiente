@@ -1,0 +1,43 @@
+// Prisma schema — Control Ambiental RCD
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  ADMIN
+  USUARIO
+}
+
+enum TipoDocumento {
+  NIT
+  CC
+}
+
+// Formulario Usuario (hoja "1. Formulario Usuario")
+model User {
+  id              String        @id @default(cuid())
+  tipoDocumento   TipoDocumento
+  numeroDocumento String        @unique // Natural o Jurídica: NIT o CC — es el login del usuario
+  passwordHash    String
+
+  correo    String  @unique
+  tipoVia   String // preestablecido: CL, KR, DG, ...
+  direccion String
+  localidad Int? // 1-19, opcional
+  telefono  String
+  telefono2 String?
+
+  rol Rol @default(USUARIO)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
