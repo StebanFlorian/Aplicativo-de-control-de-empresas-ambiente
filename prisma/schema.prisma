@@ -20,6 +20,45 @@ enum TipoDocumento {
   CC
 }
 
+enum ClasificacionObra {
+  DISTRITAL
+  NACIONAL
+}
+
+enum TamanoObra {
+  MAYOR_2000
+  MENOR_2000
+}
+
+enum PeriodicidadReporte {
+  MENSUAL
+  TRIMESTRAL
+}
+
+enum NivelCatalogoRcd {
+  GRUPO
+  ITEM
+}
+
+enum TipoTratamiento {
+  DISPOSICION_FINAL
+  REUTILIZACION
+  RECICLAJE
+  OTROS
+}
+
+enum TipoFormularioReporte {
+  FORM_3_1 // Obra Distrital > 2000m2 — único con detalle completo por ahora
+  FORM_3_2 // próximamente
+  OBRA_DISTRITAL_MENOR // próximamente
+  OBRA_NACIONAL // próximamente (>2000m2 y <2000m2)
+}
+
+enum EstadoReporte {
+  BORRADOR
+  ENVIADO
+}
+
 // Formulario Usuario (hoja "1. Formulario Usuario")
 model User {
   id              String        @id @default(cuid())
@@ -36,8 +75,156 @@ model User {
 
   rol Rol @default(USUARIO)
 
+  obras Obra[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+// Agrupador administrativo creado por el admin (ver Milestone 4 para el CRUD completo).
+model CentroDeTrabajo {
+  id          String  @id @default(cuid())
+  nombre      String
+  descripcion String?
+
+  obras Obra[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("centros_de_trabajo")
+}
+
+// Formulario Obra (hoja "2. Formulario Obra")
+model Obra {
+  id String @id @default(cuid())
+
+  nombre    String
+  telefono  String?
+  tipoVia   String
+  direccion String
+
+  departamento String
+  ciudad       String
+  localidad    Int? // 1-19, solo aplica si ciudad = Bogotá D.C.
+
+  area                  Decimal // m2
+  fechaInicio           DateTime
+  cantidadRcdProyectada Decimal // toneladas proyectadas a generar
+  cantidadMaterialAUsar Decimal?
+
+  // Derivados de departamento/ciudad/área al momento de creación — ver src/lib/regulacion.ts
+  clasificacion       ClasificacionObra
+  tamano              TamanoObra
+  periodicidadReporte PeriodicidadReporte
+
+  lat Decimal?
+  lng Decimal?
+
+  centroDeTrabajoId String?
+  centroDeTrabajo   CentroDeTrabajo? @relation(fields: [centroDeTrabajoId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  metas    MetaPeriodo[]
+  reportes ReporteRCD[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("obras")
+}
+
+// Calendario de metas de reporte — fórmula PROVISIONAL, ver src/lib/regulacion.ts
+model MetaPeriodo {
+  id String @id @default(cuid())
+
+  obraId String
+  obra   Obra   @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  periodoInicio       DateTime
+  periodoFin          DateTime
+  cantidadEsperadaTon Decimal
+
+  createdAt DateTime @default(now())
+
+  @@map("metas_periodo")
+}
+
+// Catálogo jerárquico de tipos de RCD (hoja "3.1 Fml Obra Dist.> 2000m2").
+// Sembrado vía prisma/seed.ts — no se edita a mano en producción.
+model RcdCatalogItem {
+  id     String           @id @default(cuid())
+  codigo String           @unique // ej: "01 01", "01 01 01"
+  nombre String
+  nivel  NivelCatalogoRcd
+
+  requiereTratamiento Boolean @default(false) // true para los ítems hoja (nivel = ITEM)
+
+  parentId String?
+  parent   RcdCatalogItem?  @relation("CatalogoJerarquia", fields: [parentId], references: [id])
+  hijos    RcdCatalogItem[] @relation("CatalogoJerarquia")
+
+  reporteItems ReporteRcdItem[]
+
+  @@map("rcd_catalog_items")
+}
+
+// Formulario de reporte periódico de RCD. Por ahora solo Formulario 3.1 tiene
+// reglas de negocio completas; los demás quedan como scaffold (ver Milestone 7).
+model ReporteRCD {
+  id String @id @default(cuid())
+
+  obraId String
+  obra   Obra   @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  tipoFormulario TipoFormularioReporte
+  periodoInicio  DateTime
+  periodoFin     DateTime
+
+  estado     EstadoReporte @default(BORRADOR)
+  fechaEnvio DateTime?
+
+  adquisiciones AdquisicionMaterial[]
+  itemsRcd      ReporteRcdItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reportes_rcd")
+}
+
+// "Adquisición de material valorizado" — filas repetibles del Formulario 3.1.
+model AdquisicionMaterial {
+  id String @id @default(cuid())
+
+  reporteId String
+  reporte   ReporteRCD @relation(fields: [reporteId], references: [id], onDelete: Cascade)
+
+  cantidadTon Decimal
+  proveedor   String
+
+  @@map("adquisiciones_material")
+}
+
+// Cantidad reportada por tipo de RCD + tratamiento aplicado.
+model ReporteRcdItem {
+  id String @id @default(cuid())
+
+  reporteId String
+  reporte   ReporteRCD @relation(fields: [reporteId], references: [id], onDelete: Cascade)
+
+  rcdCatalogItemId String
+  rcdCatalogItem   RcdCatalogItem @relation(fields: [rcdCatalogItemId], references: [id])
+
+  cantidadTon Decimal
+
+  tratamiento           TipoTratamiento?
+  lugarDisposicionFinal String? // requerido solo si tratamiento = DISPOSICION_FINAL
+
+  @@unique([reporteId, rcdCatalogItemId])
+  @@map("reporte_rcd_items")
 }

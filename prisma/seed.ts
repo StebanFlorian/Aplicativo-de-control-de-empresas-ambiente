@@ -3,11 +3,12 @@ import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../src/generated/prisma/client";
+import { RCD_CATALOG, type RcdCatalogNodeSeed } from "../src/lib/rcd-catalog";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
-async function main() {
+async function seedAdmin() {
   const adminNumeroDocumento = "1000000000";
   const adminPassword = "Admin123!";
 
@@ -35,9 +36,45 @@ async function main() {
     },
   });
 
-  console.log(
-    `Admin creado. Login: ${adminNumeroDocumento} / Contraseña: ${adminPassword}`,
-  );
+  console.log(`Admin creado. Login: ${adminNumeroDocumento} / Contraseña: ${adminPassword}`);
+}
+
+async function seedNodo(nodo: RcdCatalogNodeSeed, parentId: string | null) {
+  const esGrupo = !!nodo.hijos?.length;
+
+  const registro = await prisma.rcdCatalogItem.upsert({
+    where: { codigo: nodo.codigo },
+    update: { nombre: nodo.nombre, nivel: esGrupo ? "GRUPO" : "ITEM", parentId },
+    create: {
+      codigo: nodo.codigo,
+      nombre: nodo.nombre,
+      nivel: esGrupo ? "GRUPO" : "ITEM",
+      requiereTratamiento: !esGrupo,
+      parentId,
+    },
+  });
+
+  for (const hijo of nodo.hijos ?? []) {
+    await seedNodo(hijo, registro.id);
+  }
+}
+
+async function seedCatalogoRcd() {
+  const count = await prisma.rcdCatalogItem.count();
+  if (count > 0) {
+    console.log("Catálogo RCD ya sembrado, no se vuelve a crear.");
+    return;
+  }
+
+  for (const nodo of RCD_CATALOG) {
+    await seedNodo(nodo, null);
+  }
+  console.log("Catálogo RCD sembrado.");
+}
+
+async function main() {
+  await seedAdmin();
+  await seedCatalogoRcd();
 }
 
 main()

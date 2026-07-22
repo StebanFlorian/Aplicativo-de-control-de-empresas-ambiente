@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -26,7 +26,9 @@ import {
 
 type Mode = "registro" | "perfil";
 
-type FormValues = UsuarioRegistroInput | UsuarioPerfilInput;
+// Se usa siempre la forma "superset" (registro) como tipo del formulario;
+// en modo "perfil" simplemente no se registran/envían los campos de contraseña.
+type FormValues = UsuarioRegistroInput;
 
 export function FormularioUsuarioForm({
   mode,
@@ -36,13 +38,17 @@ export function FormularioUsuarioForm({
 }: {
   mode: Mode;
   defaultValues?: Partial<UsuarioPerfilInput>;
-  onSubmit: (data: FormValues) => Promise<{ error?: string }>;
+  onSubmit: (data: UsuarioRegistroInput | UsuarioPerfilInput) => Promise<{ error?: string }>;
   successRedirect?: string;
 }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
-  const schema = mode === "registro" ? usuarioRegistroSchema : usuarioPerfilSchema;
+  const resolver: Resolver<FormValues> = async (values, context, options) => {
+    const schema = mode === "registro" ? usuarioRegistroSchema : usuarioPerfilSchema;
+    const zodValidate = zodResolver(schema) as unknown as Resolver<FormValues>;
+    return zodValidate(values, context, options);
+  };
 
   const {
     register,
@@ -51,7 +57,7 @@ export function FormularioUsuarioForm({
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver,
     defaultValues: {
       tipoDocumento: "CC",
       tipoVia: "CL",
@@ -85,7 +91,7 @@ export function FormularioUsuarioForm({
           <Label htmlFor="tipoDocumento">Natural o Jurídica</Label>
           <Select
             value={tipoDocumento}
-            onValueChange={(v) => setValue("tipoDocumento", v as "NIT" | "CC")}
+            onValueChange={(v) => v && setValue("tipoDocumento", v as "NIT" | "CC")}
             disabled={mode === "perfil"}
           >
             <SelectTrigger id="tipoDocumento">
@@ -119,7 +125,7 @@ export function FormularioUsuarioForm({
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="tipoVia">Tipo de vía</Label>
-          <Select value={tipoVia} onValueChange={(v) => setValue("tipoVia", v)}>
+          <Select value={tipoVia} onValueChange={(v) => v && setValue("tipoVia", v)}>
             <SelectTrigger id="tipoVia">
               <SelectValue />
             </SelectTrigger>
@@ -145,7 +151,9 @@ export function FormularioUsuarioForm({
         <Label htmlFor="localidad">Localidad (opcional)</Label>
         <Select
           value={localidad ? String(localidad) : "none"}
-          onValueChange={(v) => setValue("localidad", v === "none" ? undefined : Number(v))}
+          onValueChange={(v) =>
+            setValue("localidad", !v || v === "none" ? undefined : Number(v))
+          }
         >
           <SelectTrigger id="localidad">
             <SelectValue placeholder="Sin localidad" />
@@ -179,28 +187,16 @@ export function FormularioUsuarioForm({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              type="password"
-              {...register("password" as keyof FormValues)}
-            />
-            {"password" in errors && (
-              <p className="text-sm text-destructive">
-                {(errors as { password?: { message?: string } }).password?.message}
-              </p>
+            <Input id="password" type="password" {...register("password")} />
+            {errors.password && (
+              <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              {...register("confirmPassword" as keyof FormValues)}
-            />
-            {"confirmPassword" in errors && (
-              <p className="text-sm text-destructive">
-                {(errors as { confirmPassword?: { message?: string } }).confirmPassword?.message}
-              </p>
+            <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+            {errors.confirmPassword && (
+              <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
             )}
           </div>
         </div>
