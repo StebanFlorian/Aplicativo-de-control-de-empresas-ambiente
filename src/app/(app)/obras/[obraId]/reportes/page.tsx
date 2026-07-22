@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { FileText, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,15 +34,23 @@ export default async function ReportesObraPage({
   const formatter = new Intl.DateTimeFormat("es-CO", { dateStyle: "medium" });
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Reportes RCD — {obra.nombre}</h1>
-        <Button render={<Link href={`/obras/${obraId}/reportes/nuevo`} />}>Nuevo reporte</Button>
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Reportes RCD — {obra.nombre}</h1>
+        <Button render={<Link href={`/obras/${obraId}/reportes/nuevo`} />} className="gap-1.5">
+          <Plus className="size-4" />
+          Nuevo reporte
+        </Button>
       </div>
 
       <div className="mt-6">
         {reportes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aún no hay reportes registrados.</p>
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-16 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <FileText className="size-6" />
+            </div>
+            <p className="text-sm text-muted-foreground">Aún no hay reportes registrados.</p>
+          </div>
         ) : (
           <Table>
             <TableHeader>

@@ -13,8 +13,8 @@ export default async function AdminMapaPage({
   const centros = await prisma.centroDeTrabajo.findMany({ orderBy: { nombre: "asc" } });
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-semibold">Mapa de obras</h1>
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      <h1 className="text-2xl font-semibold tracking-tight">Mapa de obras</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Punto redondo = obra Distrital, punto cuadrado = obra Nacional. Verde = al día, rojo =
         atrasado, gris = sin calendario de metas.

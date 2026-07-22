@@ -1,15 +1,8 @@
 import Link from "next/link";
+import { Building2 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { ObraCard } from "@/components/obras/ObraCard";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminObrasPage({
@@ -29,8 +22,13 @@ export default async function AdminObrasPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-semibold">Obras (todas)</h1>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Obras</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Todas las obras registradas en la plataforma.
+        </p>
+      </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Button
@@ -54,38 +52,32 @@ export default async function AdminObrasPage({
 
       <div className="mt-6">
         {obras.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No hay obras registradas.</p>
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-16 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <Building2 className="size-6" />
+            </div>
+            <p className="text-sm text-muted-foreground">No hay obras registradas.</p>
+          </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Usuario</TableHead>
-                <TableHead>Centro de trabajo</TableHead>
-                <TableHead>Clasificación</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {obras.map((obra) => (
-                <TableRow key={obra.id}>
-                  <TableCell className="font-medium">{obra.nombre}</TableCell>
-                  <TableCell>{obra.user.numeroDocumento}</TableCell>
-                  <TableCell>{obra.centroDeTrabajo?.nombre ?? "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant={obra.clasificacion === "DISTRITAL" ? "default" : "secondary"}>
-                      {obra.clasificacion} · {obra.tamano === "MAYOR_2000" ? ">2000m²" : "<2000m²"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button render={<Link href={`/obras/${obra.id}`} />} variant="ghost" size="sm">
-                      Ver
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {obras.map((obra) => (
+              <ObraCard
+                key={obra.id}
+                obra={{
+                  id: obra.id,
+                  nombre: obra.nombre,
+                  ciudad: obra.ciudad,
+                  departamento: obra.departamento,
+                  area: Number(obra.area),
+                  clasificacion: obra.clasificacion,
+                  tamano: obra.tamano,
+                  periodicidadReporte: obra.periodicidadReporte,
+                  centroDeTrabajo: obra.centroDeTrabajo?.nombre,
+                  usuario: obra.user.numeroDocumento,
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>

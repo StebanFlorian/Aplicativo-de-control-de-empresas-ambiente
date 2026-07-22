@@ -26,7 +26,7 @@ export default async function NuevoReportePage({
 
   if (!esFormulario31) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-semibold">Nuevo reporte — {obra.nombre}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {obra.clasificacion} · {obra.tamano === "MAYOR_2000" ? ">2000 m²" : "<2000 m²"}
@@ -42,7 +42,7 @@ export default async function NuevoReportePage({
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-semibold">Formulario 3.1 — {obra.nombre}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Obra Distrital &gt; 2000 m². Registra el periodo, las adquisiciones de material valorizado

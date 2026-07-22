@@ -1,15 +1,8 @@
 import Link from "next/link";
+import { Network, Plus } from "lucide-react";
 
-import { EliminarCentroButton } from "@/components/admin/EliminarCentroButton";
+import { CentroCard } from "@/components/centros/CentroCard";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminCentrosPage() {
@@ -19,47 +12,46 @@ export default async function AdminCentrosPage() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Centros de trabajo</h1>
-        <Button render={<Link href="/admin/centros/nuevo" />}>Nuevo centro</Button>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Centros de trabajo</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Agrupa las obras por zona o regional para facilitar el control.
+          </p>
+        </div>
+        <Button render={<Link href="/admin/centros/nuevo" />} className="gap-1.5">
+          <Plus className="size-4" />
+          Nuevo centro
+        </Button>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8">
         {centros.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No hay centros de trabajo creados.</p>
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-16 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <Network className="size-6" />
+            </div>
+            <p className="text-sm text-muted-foreground">No hay centros de trabajo creados.</p>
+            <Button render={<Link href="/admin/centros/nuevo" />} className="mt-2 gap-1.5">
+              <Plus className="size-4" />
+              Nuevo centro
+            </Button>
+          </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead>Obras asignadas</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {centros.map((centro) => (
-                <TableRow key={centro.id}>
-                  <TableCell className="font-medium">{centro.nombre}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {centro.descripcion ?? "—"}
-                  </TableCell>
-                  <TableCell>{centro._count.obras}</TableCell>
-                  <TableCell className="flex justify-end gap-2 text-right">
-                    <Button
-                      render={<Link href={`/admin/centros/${centro.id}/editar`} />}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Editar
-                    </Button>
-                    <EliminarCentroButton centroId={centro.id} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {centros.map((centro) => (
+              <CentroCard
+                key={centro.id}
+                centro={{
+                  id: centro.id,
+                  nombre: centro.nombre,
+                  descripcion: centro.descripcion,
+                  obrasCount: centro._count.obras,
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CalendarClock, FileText, MapPin, Pencil, Plus, ScrollText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -35,20 +37,22 @@ export default async function ObraDetailPage({
   const formatter = new Intl.DateTimeFormat("es-CO", { dateStyle: "medium" });
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <div className="flex items-start justify-between">
+    <div className="mx-auto max-w-4xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">{obra.nombre}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight">{obra.nombre}</h1>
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+            <MapPin className="size-3.5" />
             {obra.tipoVia} {obra.direccion} · {obra.ciudad}, {obra.departamento}
           </p>
         </div>
-        <Button render={<Link href={`/obras/${obra.id}/editar`} />} variant="outline">
+        <Button render={<Link href={`/obras/${obra.id}/editar`} />} variant="outline" className="gap-1.5">
+          <Pencil className="size-3.5" />
           Editar
         </Button>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         <Badge>{obra.clasificacion}</Badge>
         <Badge variant="secondary">
           {obra.tamano === "MAYOR_2000" ? "Área > 2000 m²" : "Área < 2000 m²"}
@@ -56,49 +60,69 @@ export default async function ObraDetailPage({
         <Badge variant="outline">Reporte {obra.periodicidadReporte.toLowerCase()}</Badge>
       </div>
 
-      <div className="mt-4 rounded-md border bg-muted/40 p-4 text-sm">
-        <p className="font-medium">Normativa aplicable</p>
-        <p className="mt-1 text-muted-foreground">{textoNormativaAplicable(obra.clasificacion)}</p>
-        <p className="mt-2 font-medium">Formulario de reporte correspondiente</p>
-        <p className="mt-1 text-muted-foreground">
-          {nombreFormularioReporte(obra.clasificacion, obra.tamano)}
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ScrollText className="size-4 text-primary" />
+            Normativa aplicable
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <p className="text-muted-foreground">{textoNormativaAplicable(obra.clasificacion)}</p>
+          <div>
+            <p className="font-medium">Formulario de reporte correspondiente</p>
+            <p className="mt-1 flex items-center gap-1.5 text-muted-foreground">
+              <FileText className="size-3.5" />
+              {nombreFormularioReporte(obra.clasificacion, obra.tamano)}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="mt-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Calendario de metas</h2>
-          <Button render={<Link href={`/obras/${obra.id}/reportes/nuevo`} />} size="sm">
+      <Card>
+        <CardHeader className="flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <CalendarClock className="size-4 text-primary" />
+            Calendario de metas
+          </CardTitle>
+          <Button
+            render={<Link href={`/obras/${obra.id}/reportes/nuevo`} />}
+            size="sm"
+            className="gap-1.5"
+          >
+            <Plus className="size-3.5" />
             Nuevo reporte
           </Button>
-        </div>
-        <p className="mt-1 rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-          Estimación provisional: se reparte linealmente la cantidad de RCD proyectada en una
-          ventana de 12 meses desde la fecha de inicio. Ajustable cuando se defina la fórmula
-          oficial de metas.
-        </p>
+        </CardHeader>
+        <CardContent>
+          <p className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            Estimación provisional: se reparte linealmente la cantidad de RCD proyectada en una
+            ventana de 12 meses desde la fecha de inicio. Ajustable cuando se defina la fórmula
+            oficial de metas.
+          </p>
 
-        <Table className="mt-4">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Periodo</TableHead>
-              <TableHead className="text-right">Cantidad esperada (Ton)</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {obra.metas.map((meta) => (
-              <TableRow key={meta.id}>
-                <TableCell>
-                  {formatter.format(meta.periodoInicio)} — {formatter.format(meta.periodoFin)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {Number(meta.cantidadEsperadaTon).toFixed(2)}
-                </TableCell>
+          <Table className="mt-4">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Periodo</TableHead>
+                <TableHead className="text-right">Cantidad esperada (Ton)</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {obra.metas.map((meta) => (
+                <TableRow key={meta.id}>
+                  <TableCell>
+                    {formatter.format(meta.periodoInicio)} — {formatter.format(meta.periodoFin)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {Number(meta.cantidadEsperadaTon).toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
