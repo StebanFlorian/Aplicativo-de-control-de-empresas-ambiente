@@ -3,6 +3,7 @@ import { Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ObraCard } from "@/components/obras/ObraCard";
+import { AsignarUsuarioObraSelect } from "@/components/admin/AsignarUsuarioObraSelect";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminObrasPage({
@@ -12,13 +13,17 @@ export default async function AdminObrasPage({
 }) {
   const { centro } = await searchParams;
 
-  const [obras, centros] = await Promise.all([
+  const [obras, centros, usuarios] = await Promise.all([
     prisma.obra.findMany({
       where: centro ? { centroDeTrabajoId: centro } : undefined,
       include: { user: { select: { numeroDocumento: true } }, centroDeTrabajo: true },
       orderBy: { createdAt: "desc" },
     }),
     prisma.centroDeTrabajo.findMany({ orderBy: { nombre: "asc" } }),
+    prisma.user.findMany({
+      orderBy: { numeroDocumento: "asc" },
+      select: { id: true, numeroDocumento: true },
+    }),
   ]);
 
   return (
@@ -61,21 +66,27 @@ export default async function AdminObrasPage({
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {obras.map((obra) => (
-              <ObraCard
-                key={obra.id}
-                obra={{
-                  id: obra.id,
-                  nombre: obra.nombre,
-                  ciudad: obra.ciudad,
-                  departamento: obra.departamento,
-                  area: Number(obra.area),
-                  clasificacion: obra.clasificacion,
-                  tamano: obra.tamano,
-                  periodicidadReporte: obra.periodicidadReporte,
-                  centroDeTrabajo: obra.centroDeTrabajo?.nombre,
-                  usuario: obra.user.numeroDocumento,
-                }}
-              />
+              <div key={obra.id} className="space-y-2">
+                <ObraCard
+                  obra={{
+                    id: obra.id,
+                    nombre: obra.nombre,
+                    ciudad: obra.ciudad,
+                    departamento: obra.departamento,
+                    area: Number(obra.area),
+                    clasificacion: obra.clasificacion,
+                    tamano: obra.tamano,
+                    periodicidadReporte: obra.periodicidadReporte,
+                    centroDeTrabajo: obra.centroDeTrabajo?.nombre,
+                    usuario: obra.user.numeroDocumento,
+                  }}
+                />
+                <AsignarUsuarioObraSelect
+                  obraId={obra.id}
+                  usuarioActualId={obra.userId}
+                  usuarios={usuarios}
+                />
+              </div>
             ))}
           </div>
         )}

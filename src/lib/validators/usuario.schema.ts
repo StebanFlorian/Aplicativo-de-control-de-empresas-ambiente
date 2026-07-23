@@ -45,3 +45,13 @@ export type UsuarioRegistroInput = z.infer<typeof usuarioRegistroSchema>;
 export const usuarioPerfilSchema = usuarioBaseSchema;
 
 export type UsuarioPerfilInput = z.infer<typeof usuarioPerfilSchema>;
+
+// Usado por el admin para crear usuarios asignando el rol directamente
+// (en vez del auto-registro público, que siempre crea rol USUARIO).
+export const usuarioAdminCreateSchema = usuarioRegistroSchema.and(
+  z.object({
+    rol: z.enum(["ADMIN", "USUARIO"], { message: "Selecciona un rol." }),
+  }),
+);
+
+export type UsuarioAdminCreateInput = z.infer<typeof usuarioAdminCreateSchema>;

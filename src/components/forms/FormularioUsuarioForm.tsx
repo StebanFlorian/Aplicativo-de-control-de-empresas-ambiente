@@ -18,17 +18,19 @@ import {
 } from "@/components/ui/select";
 import { TIPOS_VIA, LOCALIDADES_BOGOTA } from "@/lib/colombia-geo";
 import {
+  usuarioAdminCreateSchema,
   usuarioPerfilSchema,
   usuarioRegistroSchema,
+  type UsuarioAdminCreateInput,
   type UsuarioPerfilInput,
   type UsuarioRegistroInput,
 } from "@/lib/validators/usuario.schema";
 
-type Mode = "registro" | "perfil";
+type Mode = "registro" | "perfil" | "admin-crear";
 
-// Se usa siempre la forma "superset" (registro) como tipo del formulario;
-// en modo "perfil" simplemente no se registran/envían los campos de contraseña.
-type FormValues = UsuarioRegistroInput;
+// Se usa siempre la forma "superset" (admin-crear) como tipo del formulario;
+// en los otros modos simplemente no se registran/envían algunos campos.
+type FormValues = UsuarioAdminCreateInput;
 
 export function FormularioUsuarioForm({
   mode,
@@ -38,14 +40,21 @@ export function FormularioUsuarioForm({
 }: {
   mode: Mode;
   defaultValues?: Partial<UsuarioPerfilInput>;
-  onSubmit: (data: UsuarioRegistroInput | UsuarioPerfilInput) => Promise<{ error?: string }>;
+  onSubmit: (
+    data: UsuarioRegistroInput | UsuarioPerfilInput | UsuarioAdminCreateInput,
+  ) => Promise<{ error?: string }>;
   successRedirect?: string;
 }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
   const resolver: Resolver<FormValues> = async (values, context, options) => {
-    const schema = mode === "registro" ? usuarioRegistroSchema : usuarioPerfilSchema;
+    const schema =
+      mode === "admin-crear"
+        ? usuarioAdminCreateSchema
+        : mode === "registro"
+          ? usuarioRegistroSchema
+          : usuarioPerfilSchema;
     const zodValidate = zodResolver(schema) as unknown as Resolver<FormValues>;
     return zodValidate(values, context, options);
   };
@@ -61,6 +70,7 @@ export function FormularioUsuarioForm({
     defaultValues: {
       tipoDocumento: "CC",
       tipoVia: "CL",
+      rol: "USUARIO",
       ...defaultValues,
     },
   });
@@ -68,6 +78,7 @@ export function FormularioUsuarioForm({
   const tipoVia = watch("tipoVia");
   const tipoDocumento = watch("tipoDocumento");
   const localidad = watch("localidad");
+  const rol = watch("rol");
 
   async function submit(data: FormValues) {
     setSubmitting(true);
@@ -79,7 +90,9 @@ export function FormularioUsuarioForm({
       return;
     }
 
-    toast.success(mode === "registro" ? "Usuario registrado correctamente." : "Perfil actualizado.");
+    toast.success(
+      mode === "perfil" ? "Perfil actualizado." : "Usuario registrado correctamente.",
+    );
     if (successRedirect) router.push(successRedirect);
     router.refresh();
   }
@@ -183,7 +196,7 @@ export function FormularioUsuarioForm({
         </div>
       </div>
 
-      {mode === "registro" && (
+      {(mode === "registro" || mode === "admin-crear") && (
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña</Label>
@@ -202,8 +215,30 @@ export function FormularioUsuarioForm({
         </div>
       )}
 
+      {mode === "admin-crear" && (
+        <div className="space-y-2">
+          <Label htmlFor="rol">Rol</Label>
+          <Select value={rol} onValueChange={(v) => v && setValue("rol", v as "ADMIN" | "USUARIO")}>
+            <SelectTrigger id="rol">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USUARIO">Usuario común</SelectItem>
+              <SelectItem value="ADMIN">Administrador</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.rol && <p className="text-sm text-destructive">{errors.rol.message}</p>}
+        </div>
+      )}
+
       <Button type="submit" disabled={submitting}>
-        {submitting ? "Guardando..." : mode === "registro" ? "Registrarme" : "Guardar cambios"}
+        {submitting
+          ? "Guardando..."
+          : mode === "perfil"
+            ? "Guardar cambios"
+            : mode === "admin-crear"
+              ? "Crear usuario"
+              : "Registrarme"}
       </Button>
     </form>
   );

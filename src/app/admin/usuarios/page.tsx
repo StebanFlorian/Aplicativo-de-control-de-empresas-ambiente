@@ -1,4 +1,8 @@
+import Link from "next/link";
+import { UserPlus } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -22,11 +26,17 @@ export default async function AdminUsuariosPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Usuarios</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Administra el acceso y los roles de la plataforma.
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Usuarios</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Administra el acceso y los roles de la plataforma.
+          </p>
+        </div>
+        <Button render={<Link href="/admin/usuarios/nuevo" />} className="gap-1.5">
+          <UserPlus className="size-4" />
+          Nuevo usuario
+        </Button>
       </div>
 
       <Card className="mt-6">
