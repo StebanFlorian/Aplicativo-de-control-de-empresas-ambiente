@@ -8,11 +8,15 @@ import { requireSession } from "@/lib/rbac";
 
 export default async function ObrasPage() {
   const session = await requireSession();
+  const esAdmin = session.user.rol === "ADMIN";
 
   const obras = await prisma.obra.findMany({
-    where: { userId: session.user.id },
+    where: esAdmin ? undefined : { userId: session.user.id },
     orderBy: { createdAt: "desc" },
-    include: { centroDeTrabajo: { select: { nombre: true } } },
+    include: {
+      centroDeTrabajo: { select: { nombre: true } },
+      user: { select: { numeroDocumento: true } },
+    },
   });
 
   return (
@@ -62,6 +66,7 @@ export default async function ObrasPage() {
                   tamano: obra.tamano,
                   periodicidadReporte: obra.periodicidadReporte,
                   centroDeTrabajo: obra.centroDeTrabajo?.nombre,
+                  usuario: esAdmin ? obra.user.numeroDocumento : undefined,
                 }}
               />
             ))}

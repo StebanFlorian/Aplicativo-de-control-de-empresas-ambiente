@@ -29,9 +29,10 @@ export default async function AdminObrasPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Obras</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Asignación de obras</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Todas las obras registradas en la plataforma.
+          Todas las obras registradas en la plataforma. Reasigna el usuario propietario desde
+          cada tarjeta.
         </p>
       </div>
 
