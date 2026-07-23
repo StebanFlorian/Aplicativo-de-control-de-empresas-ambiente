@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { RcdCatalogTreeNode } from "@/lib/rcd-catalog";
+import type { RcdCatalogFlatItem, RcdCatalogTreeNode } from "@/lib/rcd-catalog";
 import { reporte31Schema, type Reporte31Input } from "@/lib/validators/reporte31.schema";
 
 import { AdquisicionMaterialRows } from "./AdquisicionMaterialRows";
@@ -20,13 +20,13 @@ function toDateInputValue(date?: Date) {
   return new Date(date).toISOString().slice(0, 10);
 }
 
-function collectLeafIds(nodes: RcdCatalogTreeNode[]): string[] {
-  const ids: string[] = [];
+function collectLeaves(nodes: RcdCatalogTreeNode[]): RcdCatalogFlatItem[] {
+  const leaves: RcdCatalogFlatItem[] = [];
   for (const node of nodes) {
-    if (node.nivel === "ITEM") ids.push(node.id);
-    else ids.push(...collectLeafIds(node.hijos));
+    if (node.nivel === "ITEM") leaves.push(node);
+    else leaves.push(...collectLeaves(node.hijos));
   }
-  return ids;
+  return leaves;
 }
 
 export function Formulario31Form({
@@ -45,7 +45,8 @@ export function Formulario31Form({
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
-  const leafIds = useMemo(() => collectLeafIds(catalogTree), [catalogTree]);
+  const leaves = useMemo(() => collectLeaves(catalogTree), [catalogTree]);
+  const leafIds = useMemo(() => leaves.map((l) => l.id), [leaves]);
   const indexByItemId = useMemo(
     () => Object.fromEntries(leafIds.map((id, i) => [id, i])),
     [leafIds],
@@ -120,7 +121,7 @@ export function Formulario31Form({
         <div>
           <h2 className="text-lg font-semibold">Adquisición de material valorizado</h2>
           <div className="mt-3">
-            <AdquisicionMaterialRows readOnly={readOnly} />
+            <AdquisicionMaterialRows materiales={leaves} readOnly={readOnly} />
           </div>
         </div>
 

@@ -37,6 +37,30 @@ export function nombreFormularioReporte(clasificacion: Clasificacion, tamano: Ta
   return "Formulario 6 (próximamente)";
 }
 
+// Formulario oficial que le correspondería a la obra según la hoja de
+// cálculo. Se usa para clasificar los reportes "manuales" (formulario
+// genérico o archivo adjunto) que cubren estos formularios mientras no
+// tengan reglas de negocio propias (ver Milestone 7).
+export function tipoFormularioParaObra(
+  clasificacion: Clasificacion,
+  tamano: Tamano,
+): "FORM_3_1" | "OBRA_DISTRITAL_MENOR" | "OBRA_NACIONAL" {
+  if (clasificacion === "DISTRITAL" && tamano === "MAYOR_2000") return "FORM_3_1";
+  if (clasificacion === "DISTRITAL" && tamano === "MENOR_2000") return "OBRA_DISTRITAL_MENOR";
+  return "OBRA_NACIONAL";
+}
+
+const NOMBRE_POR_TIPO_FORMULARIO: Record<string, string> = {
+  FORM_3_1: "Formulario 3.1",
+  FORM_3_2: "Formulario 3.2",
+  OBRA_DISTRITAL_MENOR: "Formulario 4",
+  OBRA_NACIONAL: "Formulario 5/6",
+};
+
+export function nombreFormularioPorTipo(tipoFormulario: string): string {
+  return NOMBRE_POR_TIPO_FORMULARIO[tipoFormulario] ?? tipoFormulario;
+}
+
 export interface MetaPeriodoCalculada {
   periodoInicio: Date;
   periodoFin: Date;

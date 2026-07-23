@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
 import { isOwnerOrAdmin, requireSession } from "@/lib/rbac";
+import { nombreFormularioPorTipo } from "@/lib/regulacion";
 
 export default async function ReportesObraPage({
   params,
@@ -67,7 +68,7 @@ export default async function ReportesObraPage({
                   <TableCell>
                     {formatter.format(r.periodoInicio)} — {formatter.format(r.periodoFin)}
                   </TableCell>
-                  <TableCell>{r.tipoFormulario}</TableCell>
+                  <TableCell>{nombreFormularioPorTipo(r.tipoFormulario)}</TableCell>
                   <TableCell>
                     <Badge variant={r.estado === "ENVIADO" ? "default" : "secondary"}>
                       {r.estado}

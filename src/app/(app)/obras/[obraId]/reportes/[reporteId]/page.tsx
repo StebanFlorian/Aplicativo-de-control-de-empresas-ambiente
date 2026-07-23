@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 
 import { Formulario31Form } from "@/components/forms/formulario31/Formulario31Form";
+import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { isOwnerOrAdmin, requireSession } from "@/lib/rbac";
 import { buildCatalogTree } from "@/lib/rcd-catalog";
+import { nombreFormularioPorTipo } from "@/lib/regulacion";
 
 export default async function ReporteDetailPage({
   params,
@@ -22,13 +24,24 @@ export default async function ReporteDetailPage({
   });
   if (!reporte || reporte.obraId !== obraId) notFound();
 
-  if (reporte.tipoFormulario !== "FORM_3_1") {
+  const nombreFormulario = nombreFormularioPorTipo(reporte.tipoFormulario);
+
+  if (reporte.archivoUrl) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-10">
-        <h1 className="text-2xl font-semibold">Reporte</h1>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Este tipo de formulario aún no tiene una vista de detalle disponible.
+        <h1 className="text-2xl font-semibold">
+          Reporte {nombreFormulario} — {obra.nombre}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Periodo: {reporte.periodoInicio.toLocaleDateString("es-CO")} —{" "}
+          {reporte.periodoFin.toLocaleDateString("es-CO")}
         </p>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Este reporte se registró como archivo adjunto: {reporte.archivoNombreOriginal}
+        </p>
+        <Button className="mt-4" render={<a href={`/api/reportes/${reporte.id}/archivo`} />}>
+          Descargar archivo
+        </Button>
       </div>
     );
   }
@@ -49,7 +62,9 @@ export default async function ReporteDetailPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="text-2xl font-semibold">Reporte Formulario 3.1 — {obra.nombre}</h1>
+      <h1 className="text-2xl font-semibold">
+        Reporte {nombreFormulario} — {obra.nombre}
+      </h1>
 
       <div className="mt-6">
         <Formulario31Form
@@ -59,6 +74,7 @@ export default async function ReporteDetailPage({
             periodoInicio: reporte.periodoInicio,
             periodoFin: reporte.periodoFin,
             adquisiciones: reporte.adquisiciones.map((a) => ({
+              rcdCatalogItemId: a.rcdCatalogItemId,
               cantidadTon: Number(a.cantidadTon),
               proveedor: a.proveedor,
             })),

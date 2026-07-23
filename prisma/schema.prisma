@@ -168,7 +168,8 @@ model RcdCatalogItem {
   parent   RcdCatalogItem?  @relation("CatalogoJerarquia", fields: [parentId], references: [id])
   hijos    RcdCatalogItem[] @relation("CatalogoJerarquia")
 
-  reporteItems ReporteRcdItem[]
+  reporteItems  ReporteRcdItem[]
+  adquisiciones AdquisicionMaterial[]
 
   @@map("rcd_catalog_items")
 }
@@ -188,6 +189,11 @@ model ReporteRCD {
   estado     EstadoReporte @default(BORRADOR)
   fechaEnvio DateTime?
 
+  // Presentes solo cuando el reporte se sube como archivo adjunto (mientras
+  // no exista formulario estructurado para este tipo, ver Milestone 7).
+  archivoUrl             String?
+  archivoNombreOriginal  String?
+
   adquisiciones AdquisicionMaterial[]
   itemsRcd      ReporteRcdItem[]
 
@@ -203,6 +209,9 @@ model AdquisicionMaterial {
 
   reporteId String
   reporte   ReporteRCD @relation(fields: [reporteId], references: [id], onDelete: Cascade)
+
+  rcdCatalogItemId String
+  rcdCatalogItem   RcdCatalogItem @relation(fields: [rcdCatalogItemId], references: [id])
 
   cantidadTon Decimal
   proveedor   String

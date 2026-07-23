@@ -8,6 +8,7 @@ export const tipoTratamientoSchema = z.enum([
 ]);
 
 export const adquisicionMaterialSchema = z.object({
+  rcdCatalogItemId: z.string().min(1, "Selecciona el tipo de material."),
   cantidadTon: z.coerce.number().positive("La cantidad debe ser mayor a 0."),
   proveedor: z.string().min(1, "El proveedor es obligatorio."),
 });
