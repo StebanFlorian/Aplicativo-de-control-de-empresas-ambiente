@@ -13,6 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DocumentosSection } from "@/components/documentos/DocumentosSection";
+import { eliminarDocumento, subirDocumentosObra } from "@/lib/actions/documento.actions";
 import { prisma } from "@/lib/prisma";
 import { isOwnerOrAdmin, requireSession } from "@/lib/rbac";
 import { nombreFormularioReporte, textoNormativaAplicable } from "@/lib/regulacion";
@@ -27,7 +29,10 @@ export default async function ObraDetailPage({
 
   const obra = await prisma.obra.findUnique({
     where: { id: obraId },
-    include: { metas: { orderBy: { periodoInicio: "asc" } } },
+    include: {
+      metas: { orderBy: { periodoInicio: "asc" } },
+      documentos: { orderBy: { createdAt: "desc" } },
+    },
   });
 
   if (!obra || !isOwnerOrAdmin(session, obra.userId)) {
@@ -121,6 +126,23 @@ export default async function ObraDetailPage({
               ))}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="size-4 text-primary" />
+            Documentos de la obra
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DocumentosSection
+            documentos={obra.documentos}
+            onUpload={subirDocumentosObra.bind(null, obra.id)}
+            onDelete={eliminarDocumento}
+            titulo="Fotos, actas, permisos y otros documentos"
+          />
         </CardContent>
       </Card>
     </div>

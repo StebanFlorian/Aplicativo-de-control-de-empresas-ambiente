@@ -50,12 +50,13 @@ export function ReporteArchivoForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="archivo">Archivo del reporte (PDF, Excel, máx. 15 MB)</Label>
+        <Label htmlFor="archivos">Archivo(s) del reporte (PDF, Excel, máx. 15 MB c/u)</Label>
         <Input
-          id="archivo"
-          name="archivo"
+          id="archivos"
+          name="archivos"
           type="file"
           accept=".pdf,.xls,.xlsx,.doc,.docx"
+          multiple
           required
         />
       </div>

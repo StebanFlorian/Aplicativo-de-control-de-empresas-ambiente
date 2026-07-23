@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
 import { Formulario31Form } from "@/components/forms/formulario31/Formulario31Form";
-import { Button } from "@/components/ui/button";
+import { DocumentosSection } from "@/components/documentos/DocumentosSection";
+import { eliminarDocumento, subirDocumentosReporte } from "@/lib/actions/documento.actions";
 import { prisma } from "@/lib/prisma";
 import { isOwnerOrAdmin, requireSession } from "@/lib/rbac";
 import { buildCatalogTree } from "@/lib/rcd-catalog";
@@ -20,13 +21,29 @@ export default async function ReporteDetailPage({
 
   const reporte = await prisma.reporteRCD.findUnique({
     where: { id: reporteId },
-    include: { adquisiciones: true, itemsRcd: true },
+    include: {
+      adquisiciones: true,
+      itemsRcd: true,
+      documentos: { orderBy: { createdAt: "desc" } },
+    },
   });
   if (!reporte || reporte.obraId !== obraId) notFound();
 
   const nombreFormulario = nombreFormularioPorTipo(reporte.tipoFormulario);
+  const documentosSection = (
+    <div className="mt-10 border-t pt-8">
+      <DocumentosSection
+        documentos={reporte.documentos}
+        onUpload={subirDocumentosReporte.bind(null, reporte.id)}
+        onDelete={eliminarDocumento}
+        titulo="Documentos del reporte"
+      />
+    </div>
+  );
 
-  if (reporte.archivoUrl) {
+  const esReporteSoloArchivo = reporte.adquisiciones.length === 0 && reporte.itemsRcd.length === 0;
+
+  if (esReporteSoloArchivo) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-10">
         <h1 className="text-2xl font-semibold">
@@ -37,11 +54,9 @@ export default async function ReporteDetailPage({
           {reporte.periodoFin.toLocaleDateString("es-CO")}
         </p>
         <p className="mt-4 text-sm text-muted-foreground">
-          Este reporte se registró como archivo adjunto: {reporte.archivoNombreOriginal}
+          Este reporte se registró como archivo(s) adjunto(s).
         </p>
-        <Button className="mt-4" render={<a href={`/api/reportes/${reporte.id}/archivo`} />}>
-          Descargar archivo
-        </Button>
+        {documentosSection}
       </div>
     );
   }
@@ -82,6 +97,8 @@ export default async function ReporteDetailPage({
           }}
         />
       </div>
+
+      {documentosSection}
     </div>
   );
 }

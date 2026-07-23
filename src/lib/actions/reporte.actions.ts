@@ -150,9 +150,11 @@ export async function crearReporteManual(
 }
 
 const TAMANO_MAX_ARCHIVO = 15 * 1024 * 1024; // 15 MB
+const MAX_ARCHIVOS_POR_SUBIDA = 10;
 
-// Reporte enviado como archivo adjunto (PDF/Excel preparado fuera del
-// aplicativo), para los mismos formularios que crearReporteManual cubre.
+// Reporte enviado como uno o más archivos adjuntos (PDF/Excel preparados
+// fuera del aplicativo), para los mismos formularios que crearReporteManual
+// cubre. Cada archivo queda como un Documento asociado al reporte creado.
 export async function crearReporteArchivo(
   obraId: string,
   tipoFormulario: string,
@@ -170,15 +172,18 @@ export async function crearReporteArchivo(
     return { error: "No tienes permiso para reportar sobre esta obra." };
   }
 
-  const archivo = formData.get("archivo");
+  const archivos = formData
+    .getAll("archivos")
+    .filter((v): v is File => v instanceof File && v.size > 0)
+    .slice(0, MAX_ARCHIVOS_POR_SUBIDA);
   const periodoInicioRaw = formData.get("periodoInicio");
   const periodoFinRaw = formData.get("periodoFin");
 
-  if (!(archivo instanceof File) || archivo.size === 0) {
-    return { error: "Adjunta un archivo." };
+  if (archivos.length === 0) {
+    return { error: "Adjunta al menos un archivo." };
   }
-  if (archivo.size > TAMANO_MAX_ARCHIVO) {
-    return { error: "El archivo no puede superar 15 MB." };
+  if (archivos.some((a) => a.size > TAMANO_MAX_ARCHIVO)) {
+    return { error: "Cada archivo debe pesar máximo 15 MB." };
   }
   if (typeof periodoInicioRaw !== "string" || typeof periodoFinRaw !== "string") {
     return { error: "Indica el periodo del reporte." };
@@ -191,11 +196,6 @@ export async function crearReporteArchivo(
   }
 
   try {
-    const blob = await put(`reportes-rcd/${obraId}/${Date.now()}-${archivo.name}`, archivo, {
-      access: "private",
-      addRandomSuffix: true,
-    });
-
     const reporte = await prisma.reporteRCD.create({
       data: {
         obraId,
@@ -204,10 +204,25 @@ export async function crearReporteArchivo(
         periodoFin,
         estado: "ENVIADO",
         fechaEnvio: new Date(),
-        archivoUrl: blob.url,
-        archivoNombreOriginal: archivo.name,
       },
     });
+
+    for (const archivo of archivos) {
+      const blob = await put(
+        `documentos/reportes/${reporte.id}/${Date.now()}-${archivo.name}`,
+        archivo,
+        { access: "private", addRandomSuffix: true },
+      );
+
+      await prisma.documento.create({
+        data: {
+          reporteId: reporte.id,
+          archivoUrl: blob.url,
+          archivoNombreOriginal: archivo.name,
+          uploadedById: session.user.id,
+        },
+      });
+    }
 
     revalidatePath(`/obras/${obraId}/reportes`);
     return { reporteId: reporte.id };
