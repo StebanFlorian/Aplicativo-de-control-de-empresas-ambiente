@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
-import { Building2, ShieldCheck, UserRound } from "lucide-react";
+import { ClipboardList, FilePlus2, ShieldCheck, UserRound } from "lucide-react";
 
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Sidebar, type SidebarNavItem } from "@/components/layout/Sidebar";
 import { auth } from "@/lib/auth";
 
 const NAV_ITEMS: SidebarNavItem[] = [
-  { href: "/obras", label: "Mis obras", icon: <Building2 className="size-4 shrink-0" /> },
+  { href: "/obras/nueva", label: "Registro de obra", icon: <FilePlus2 className="size-4 shrink-0" /> },
+  { href: "/obras", label: "Control de obra registrada", icon: <ClipboardList className="size-4 shrink-0" /> },
   { href: "/perfil", label: "Mi perfil", icon: <UserRound className="size-4 shrink-0" /> },
 ];
 

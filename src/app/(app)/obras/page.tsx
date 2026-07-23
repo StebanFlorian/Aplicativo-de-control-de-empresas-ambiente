@@ -19,9 +19,9 @@ export default async function ObrasPage() {
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Mis obras</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Control de obra registrada</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Gestiona tus proyectos de construcción y sus reportes de RCD.
+            Datos registrados en el formulario de obra y la normativa aplicable a cada proyecto.
           </p>
         </div>
         <Button render={<Link href="/obras/nueva" />} className="gap-1.5">

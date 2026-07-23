@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Building2, MapPin, Ruler } from "lucide-react";
+import { Building2, MapPin, Ruler, ScrollText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { textoNormativaAplicable } from "@/lib/regulacion";
 
 export interface ObraCardData {
   id: string;
@@ -55,6 +56,10 @@ export function ObraCard({ obra }: { obra: ObraCardData }) {
           {obra.usuario && (
             <p className="text-xs text-muted-foreground">Usuario: {obra.usuario}</p>
           )}
+          <p className="flex items-start gap-1 text-xs text-muted-foreground">
+            <ScrollText className="mt-0.5 size-3 shrink-0" />
+            {textoNormativaAplicable(obra.clasificacion)}
+          </p>
         </CardContent>
       </Card>
     </Link>

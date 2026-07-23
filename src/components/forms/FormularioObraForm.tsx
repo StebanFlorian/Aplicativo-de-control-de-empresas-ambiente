@@ -110,7 +110,7 @@ export function FormularioObraForm({
 
       <div className="space-y-2">
         <Label htmlFor="telefono">Teléfono (opcional)</Label>
-        <Input id="telefono" {...register("telefono")} />
+        <Input id="telefono" inputMode="numeric" {...register("telefono")} />
       </div>
 
       <div className="grid grid-cols-3 gap-4">
