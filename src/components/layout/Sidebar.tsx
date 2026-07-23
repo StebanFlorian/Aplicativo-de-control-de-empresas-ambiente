@@ -1,8 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Leaf, type LucideIcon } from "lucide-react";
+import { Leaf } from "lucide-react";
 
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { cn } from "@/lib/utils";
@@ -10,7 +11,7 @@ import { cn } from "@/lib/utils";
 export interface SidebarNavItem {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: ReactNode;
 }
 
 function isActive(pathname: string, href: string) {
@@ -42,7 +43,6 @@ export function Sidebar({
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {items.map((item) => {
           const active = isActive(pathname, item.href);
-          const Icon = item.icon;
           return (
             <Link
               key={item.href}
@@ -54,7 +54,7 @@ export function Sidebar({
                   : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
               )}
             >
-              <Icon className="size-4 shrink-0" />
+              {item.icon}
               {item.label}
             </Link>
           );

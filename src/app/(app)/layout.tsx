@@ -6,14 +6,14 @@ import { Sidebar, type SidebarNavItem } from "@/components/layout/Sidebar";
 import { auth } from "@/lib/auth";
 
 const NAV_ITEMS: SidebarNavItem[] = [
-  { href: "/obras", label: "Mis obras", icon: Building2 },
-  { href: "/perfil", label: "Mi perfil", icon: UserRound },
+  { href: "/obras", label: "Mis obras", icon: <Building2 className="size-4 shrink-0" /> },
+  { href: "/perfil", label: "Mi perfil", icon: <UserRound className="size-4 shrink-0" /> },
 ];
 
 const ADMIN_ITEM: SidebarNavItem = {
   href: "/admin/obras",
   label: "Panel administrador",
-  icon: ShieldCheck,
+  icon: <ShieldCheck className="size-4 shrink-0" />,
 };
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {

@@ -6,11 +6,11 @@ import { Sidebar, type SidebarNavItem } from "@/components/layout/Sidebar";
 import { auth } from "@/lib/auth";
 
 const ADMIN_NAV_ITEMS: SidebarNavItem[] = [
-  { href: "/admin/obras", label: "Obras", icon: Building2 },
-  { href: "/admin/centros", label: "Centros de trabajo", icon: Network },
-  { href: "/admin/usuarios", label: "Usuarios", icon: Users },
-  { href: "/admin/mapa", label: "Mapa", icon: MapPin },
-  { href: "/obras", label: "Vista usuario", icon: UserRound },
+  { href: "/admin/obras", label: "Obras", icon: <Building2 className="size-4 shrink-0" /> },
+  { href: "/admin/centros", label: "Centros de trabajo", icon: <Network className="size-4 shrink-0" /> },
+  { href: "/admin/usuarios", label: "Usuarios", icon: <Users className="size-4 shrink-0" /> },
+  { href: "/admin/mapa", label: "Mapa", icon: <MapPin className="size-4 shrink-0" /> },
+  { href: "/obras", label: "Vista usuario", icon: <UserRound className="size-4 shrink-0" /> },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -33,15 +33,12 @@ export function MobileNav({ items, title }: { items: SidebarNavItem[]; title: st
             }
           />
           <DropdownMenuContent align="end" className="w-56">
-            {items.map((item) => {
-              const Icon = item.icon;
-              return (
-                <DropdownMenuItem key={item.href} render={<Link href={item.href} />}>
-                  <Icon className="size-4" />
-                  {item.label}
-                </DropdownMenuItem>
-              );
-            })}
+            {items.map((item) => (
+              <DropdownMenuItem key={item.href} render={<Link href={item.href} />}>
+                {item.icon}
+                {item.label}
+              </DropdownMenuItem>
+            ))}
             <DropdownMenuSeparator />
             <div className="px-1 py-1">
               <SignOutButton className="w-full justify-center" />
