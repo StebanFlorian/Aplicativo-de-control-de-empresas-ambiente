@@ -115,16 +115,71 @@ export async function subirDocumentosReporte(
   }
 }
 
+// Soportes/evidencias adjuntos a un trámite ante la autoridad ambiental.
+export async function subirDocumentosTramite(
+  tramiteId: string,
+  formData: FormData,
+): Promise<{ error?: string }> {
+  const session = await requireSession();
+
+  const tramite = await prisma.tramiteAmbiental.findUnique({
+    where: { id: tramiteId },
+    include: { obra: true },
+  });
+  if (!tramite) return { error: "El trámite no existe." };
+  if (!isOwnerOrAdmin(session, tramite.obra.userId)) {
+    return { error: "No tienes permiso para subir documentos a este trámite." };
+  }
+
+  const archivos = archivosValidos(formData);
+  if (archivos.length === 0) return { error: "Selecciona al menos un archivo." };
+  if (archivos.some((a) => a.size > TAMANO_MAX_ARCHIVO)) {
+    return { error: "Cada archivo debe pesar máximo 15 MB." };
+  }
+
+  const descripcion = formData.get("descripcion");
+
+  try {
+    for (const archivo of archivos) {
+      const blob = await put(
+        `documentos/tramites/${tramiteId}/${Date.now()}-${archivo.name}`,
+        archivo,
+        { access: "private", addRandomSuffix: true },
+      );
+
+      await prisma.documento.create({
+        data: {
+          tramiteId,
+          archivoUrl: blob.url,
+          archivoNombreOriginal: archivo.name,
+          descripcion: typeof descripcion === "string" && descripcion ? descripcion : undefined,
+          uploadedById: session.user.id,
+        },
+      });
+    }
+
+    revalidatePath(`/tramites/${tramiteId}`);
+    return {};
+  } catch (error) {
+    console.error(error);
+    return { error: "No se pudo subir el/los archivo(s). Intenta de nuevo." };
+  }
+}
+
 export async function eliminarDocumento(documentoId: string): Promise<{ error?: string }> {
   const session = await requireSession();
 
   const documento = await prisma.documento.findUnique({
     where: { id: documentoId },
-    include: { obra: true, reporte: { include: { obra: true } } },
+    include: {
+      obra: true,
+      reporte: { include: { obra: true } },
+      tramite: { include: { obra: true } },
+    },
   });
   if (!documento) return { error: "El documento no existe." };
 
-  const obraDelDocumento = documento.obra ?? documento.reporte?.obra;
+  const obraDelDocumento = documento.obra ?? documento.reporte?.obra ?? documento.tramite?.obra;
   if (!obraDelDocumento || !isOwnerOrAdmin(session, obraDelDocumento.userId)) {
     return { error: "No tienes permiso para eliminar este documento." };
   }
@@ -137,6 +192,7 @@ export async function eliminarDocumento(documentoId: string): Promise<{ error?: 
     if (documento.reporteId && documento.reporte) {
       revalidatePath(`/obras/${documento.reporte.obraId}/reportes/${documento.reporteId}`);
     }
+    if (documento.tramiteId) revalidatePath(`/tramites/${documento.tramiteId}`);
     return {};
   } catch (error) {
     console.error(error);

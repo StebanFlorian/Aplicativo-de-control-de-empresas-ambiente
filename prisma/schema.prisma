@@ -59,6 +59,14 @@ enum EstadoReporte {
   ENVIADO
 }
 
+enum EstadoTramite {
+  PENDIENTE
+  RADICADO
+  EN_REVISION
+  APROBADO
+  RECHAZADO
+}
+
 // Formulario Usuario (hoja "1. Formulario Usuario")
 model User {
   id              String        @id @default(cuid())
@@ -133,6 +141,7 @@ model Obra {
   metas      MetaPeriodo[]
   reportes   ReporteRCD[]
   documentos Documento[]
+  tramites   TramiteAmbiental[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -237,9 +246,9 @@ model ReporteRcdItem {
 }
 
 // Documento adjunto (foto, acta, permiso, reporte manual, etc.). Se asocia a
-// una Obra (documentación general) o a un ReporteRCD (evidencias del
-// periodo), nunca a ambos. El archivo real vive en Vercel Blob; aquí solo se
-// guarda la referencia.
+// una Obra (documentación general), a un ReporteRCD (evidencias del periodo)
+// o a un TramiteAmbiental (soportes del trámite) — nunca a más de uno a la
+// vez. El archivo real vive en Vercel Blob; aquí solo se guarda la referencia.
 model Documento {
   id String @id @default(cuid())
 
@@ -248,6 +257,9 @@ model Documento {
 
   reporteId String?
   reporte   ReporteRCD? @relation(fields: [reporteId], references: [id], onDelete: Cascade)
+
+  tramiteId String?
+  tramite   TramiteAmbiental? @relation(fields: [tramiteId], references: [id], onDelete: Cascade)
 
   archivoUrl            String
   archivoNombreOriginal String
@@ -259,4 +271,26 @@ model Documento {
   createdAt DateTime @default(now())
 
   @@map("documentos")
+}
+
+// Trámite ante la autoridad ambiental (licencias, permisos, radicados, etc.)
+// asociado a una obra. Los soportes/evidencias se adjuntan como Documento.
+model TramiteAmbiental {
+  id String @id @default(cuid())
+
+  obraId String
+  obra   Obra   @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  nombre        String
+  entidad       String?
+  estado        EstadoTramite @default(PENDIENTE)
+  fechaRadicado DateTime?
+  observaciones String?
+
+  documentos Documento[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tramites_ambientales")
 }

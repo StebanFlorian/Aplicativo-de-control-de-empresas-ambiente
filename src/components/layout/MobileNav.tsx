@@ -33,12 +33,36 @@ export function MobileNav({ items, title }: { items: SidebarNavItem[]; title: st
             }
           />
           <DropdownMenuContent align="end" className="w-56">
-            {items.map((item) => (
-              <DropdownMenuItem key={item.href} render={<Link href={item.href} />}>
-                {item.icon}
-                {item.label}
-              </DropdownMenuItem>
-            ))}
+            {items.map((item) =>
+              item.children ? (
+                <div key={item.label}>
+                  <div className="flex items-center gap-2 px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                    {item.icon}
+                    {item.label}
+                  </div>
+                  {item.children.map(
+                    (child) =>
+                      child.href && (
+                        <DropdownMenuItem
+                          key={child.href}
+                          className="pl-6"
+                          render={<Link href={child.href} />}
+                        >
+                          {child.icon}
+                          {child.label}
+                        </DropdownMenuItem>
+                      ),
+                  )}
+                </div>
+              ) : (
+                item.href && (
+                  <DropdownMenuItem key={item.href} render={<Link href={item.href} />}>
+                    {item.icon}
+                    {item.label}
+                  </DropdownMenuItem>
+                )
+              ),
+            )}
             <DropdownMenuSeparator />
             <div className="px-1 py-1">
               <SignOutButton className="w-full justify-center" />
