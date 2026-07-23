@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Leaf, Menu } from "lucide-react";
 
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +24,6 @@ export function MobileNav({ items, title }: { items: SidebarNavItem[]; title: st
         {title}
       </div>
       <div className="flex items-center gap-1">
-        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger
             render={

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Leaf, type LucideIcon } from "lucide-react";
 
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { cn } from "@/lib/utils";
 
@@ -67,9 +66,6 @@ export function Sidebar({
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{numeroDocumento}</p>
             <p className="text-xs text-sidebar-foreground/60">{rol}</p>
-          </div>
-          <div className="flex items-center gap-1">
-            <ThemeToggle />
           </div>
         </div>
         <div className="mt-2">
